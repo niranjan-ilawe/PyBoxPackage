@@ -2,9 +2,13 @@ import os
 
 def box_ls(client, folder_id, file_extension, last_modified, pattern=''):
     """Recursively list all files in the specified Box folder"""
+    file_list = {}
+
+    folder = client.folder(folder_id=folder_id).get()
+    if folder.content_modified_at < last_modified:
+        return file_list
 
     items = client.folder(folder_id=folder_id).get_items()
-    file_list = {}
 
     for item in items:
         file_info = item.get()
