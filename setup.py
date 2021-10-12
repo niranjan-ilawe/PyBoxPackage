@@ -1,6 +1,6 @@
 from setuptools import setup
 setup(name='pybox',
-version='0.2.3',
+version='0.2.4',
 description='Python package for Box',
 url='https://github.com/niranjan-ilawe/PyBoxPackage',
 author='niranjan.ilawe',
