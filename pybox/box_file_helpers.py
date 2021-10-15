@@ -9,7 +9,20 @@ def box_ls(
     pattern="",
     exclude_folder_pattern="@@@",
 ):
-    """Recursively list all files in the specified Box folder"""
+    """Recursively list all files in the specified Box folder
+
+    Parameters:
+        client: Box connection client returned by the get_box_client function
+        folder_id (str): Box folder id in which recursive search is to be performed
+        file_extension (str): extension of files to be searched
+        last_modified (date/str): Function returns files newer than this specified date
+        pattern (str): Returns files that match this pattern
+        exclude_folder_pattern (str): Folders within the higher folders with this matching pattern are ignored
+
+    Returns:
+        file_list: list of all filepaths within the folder
+
+    """
     file_list = {}
 
     try:
@@ -54,8 +67,17 @@ def box_ls(
 # box_ls(client=client, folder_id=folder_id, file_extension='xlsx', pattern='DivVar', last_modified='2021-05-30')
 
 
-def box_parse_excel(client, file_id, parsing_func):
-    """Parse excel file located in Box"""
+def box_read_excel_file(client, file_id, parsing_func):
+    """Parse excel file located in Box
+
+    Parameters:
+        client: Box client object returned by the get_box_client function
+        file_id (str): Box id of file to be read
+        parsing function (func): Function to be used to read the specified file
+
+    Returns:
+        Returns the output of the specified parsing function
+    """
 
     tmp_file = "temp_file_from_box.xlsx"
     with open(tmp_file, "wb") as open_file:
