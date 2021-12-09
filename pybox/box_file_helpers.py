@@ -1,4 +1,5 @@
 import os, re
+import pandas as pd
 
 
 def box_ls(
@@ -67,7 +68,7 @@ def box_ls(
 # box_ls(client=client, folder_id=folder_id, file_extension='xlsx', pattern='DivVar', last_modified='2021-05-30')
 
 
-def box_read_excel_file(client, file_id, parsing_func):
+def box_read_excel_file(client, file_id, parsing_func, file_name):
     """Parse excel file located in Box
 
     Parameters:
@@ -79,10 +80,47 @@ def box_read_excel_file(client, file_id, parsing_func):
         Returns the output of the specified parsing function
     """
 
-    tmp_file = "temp_file_from_box.xlsx"
+    tmp_file = file_name
     with open(tmp_file, "wb") as open_file:
         client.file(file_id=file_id).download_to(open_file)
 
     df = parsing_func(tmp_file)
     os.remove(tmp_file)
+    return df
+
+
+def box_create_df_from_files(
+    box_client,
+    last_modified_date,
+    box_folder_id,
+    file_extension,
+    file_pattern,
+    file_parsing_functions,
+):
+    # Iteratively search through box folder to find files matching given extension and pattern
+    files = box_ls(
+        client=box_client,
+        folder_id=box_folder_id,
+        file_extension=file_extension,
+        pattern=file_pattern,
+        last_modified=last_modified_date,
+    )
+
+    total_no_files = len(files)
+    print(f"Files found .. {total_no_files}")
+
+    df = pd.DataFrame()
+    if total_no_files > 0:
+        # Loop through files
+        for file_id in files.keys():
+            print(f"Parsing file: {files[file_id]}")
+            df = df.append(
+                box_read_excel_file(
+                    client=box_client,
+                    file_id=file_id,
+                    parsing_func=file_parsing_functions,
+                    file_name=files.get(file_id),
+                )
+            )
+
     return df
