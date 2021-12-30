@@ -74,7 +74,7 @@ def box_read_excel_file(client, file_id, parsing_func, file_name):
     Parameters:
         client: Box client object returned by the get_box_client function
         file_id (str): Box id of file to be read
-        parsing function (func): Function to be used to read the specified file
+        parsing_function (func): Function to be used to read the specified file
 
     Returns:
         Returns the output of the specified parsing function
@@ -97,6 +97,21 @@ def box_create_df_from_files(
     file_pattern,
     file_parsing_functions,
 ):
+    """Recursively read files in a folder using the provided parsing function and return a combined dataframe
+
+    Parameters:
+        box_client: Box connection client returned by the get_box_client function
+        last_modified_date (date/str): Function reads files newer than this specified date
+        box_folder_id (str): Box folder id in which recursive read is to be performed
+        file_extension (str): Only searchs for files with this extension
+        file_pattern (str): Only reads files that match this pattern
+        file_parsing_functions (func): Function to be used to read the files
+
+    Returns:
+        file_list: list of all filepaths within the folder
+
+    """
+
     # Iteratively search through box folder to find files matching given extension and pattern
     files = box_ls(
         client=box_client,
