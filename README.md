@@ -1,8 +1,10 @@
 # pybox
-* v0.2.5
+* v0.3.0
 ---
 The *pybox* python package was created to simplify connecting to the 10X Box account.
 There are also handy functions to recursively search box folders and parse box files
+
+v0.3 adds new functionality to transact box tokens via a json file. This was needed to use the package in containerized Airflow
 
 ## Functions
 
