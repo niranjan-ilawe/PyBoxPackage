@@ -1,4 +1,5 @@
 import os, re
+from datetime import date
 import pandas as pd
 
 
@@ -7,6 +8,7 @@ def box_ls(
     folder_id,
     file_extension,
     last_modified,
+    start_modified,
     pattern="",
     exclude_folder_pattern="@@@",
 ):
@@ -17,6 +19,7 @@ def box_ls(
         folder_id (str): Box folder id in which recursive search is to be performed
         file_extension (str): extension of files to be searched
         last_modified (date/str): Function returns files newer than this specified date
+        start_modified (date/str): Function returns files older than this specified date
         pattern (str): Returns files that match this pattern
         exclude_folder_pattern (str): Folders within the higher folders with this matching pattern are ignored
 
@@ -28,7 +31,10 @@ def box_ls(
 
     try:
         folder = client.folder(folder_id=folder_id).get()
-        if folder.content_modified_at < last_modified:
+        if (
+            folder.content_modified_at < last_modified
+            and folder.content_modified_at > start_modified
+        ):
             return file_list
     except:
         return file_list
@@ -42,6 +48,7 @@ def box_ls(
                 file_info.name.endswith(file_extension)
                 and file_info.name.find(pattern) != -1
                 and file_info.modified_at > last_modified
+                and file_info.modified_at < start_modified
             ):
                 print(f"Reading {file_info.name}")
                 file_list[file_info.id] = file_info.name
@@ -96,6 +103,7 @@ def box_create_df_from_files(
     file_extension,
     file_pattern,
     file_parsing_functions,
+    start_modified_date=str(date.today()),
 ):
     """Recursively read files in a folder using the provided parsing function and return a combined dataframe
 
@@ -106,6 +114,7 @@ def box_create_df_from_files(
         file_extension (str): Only searchs for files with this extension
         file_pattern (str): Only reads files that match this pattern
         file_parsing_functions (func): Function to be used to read the files
+        start_modified_date (str): Function reads files older than this specified date, defaults to current date
 
     Returns:
         file_list: list of all filepaths within the folder
@@ -119,6 +128,7 @@ def box_create_df_from_files(
         file_extension=file_extension,
         pattern=file_pattern,
         last_modified=last_modified_date,
+        start_modified=start_modified_date,
     )
 
     total_no_files = len(files)

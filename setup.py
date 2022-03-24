@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="pybox",
-    version="0.2.5",
+    version="0.2.6",
     description="Python package for Box",
     url="https://github.com/niranjan-ilawe/PyBoxPackage",
     author="niranjan.ilawe",
