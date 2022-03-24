@@ -66,6 +66,7 @@ def box_ls(
                         pattern=pattern,
                         last_modified=last_modified,
                         exclude_folder_pattern=exclude_folder_pattern,
+                        start_modified=start_modified,
                     )
                 )
 
