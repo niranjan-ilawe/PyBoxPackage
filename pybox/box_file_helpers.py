@@ -3,7 +3,7 @@ from datetime import date
 import pandas as pd
 
 
-def box_ls(
+def box_ls_window(
     client,
     folder_id,
     file_extension,
@@ -59,7 +59,7 @@ def box_ls(
             else:
                 print(f"---- Entering folder {file_info.name}")
                 file_list.update(
-                    box_ls(
+                    box_ls_window(
                         client=client,
                         folder_id=file_info.id,
                         file_extension=file_extension,
@@ -67,6 +67,70 @@ def box_ls(
                         last_modified=last_modified,
                         exclude_folder_pattern=exclude_folder_pattern,
                         start_modified=start_modified,
+                    )
+                )
+
+    return file_list
+
+
+def box_ls(
+    client,
+    folder_id,
+    file_extension,
+    last_modified,
+    pattern="",
+    exclude_folder_pattern="@@@",
+):
+    """Recursively list all files in the specified Box folder
+
+    Parameters:
+        client: Box connection client returned by the get_box_client function
+        folder_id (str): Box folder id in which recursive search is to be performed
+        file_extension (str): extension of files to be searched
+        last_modified (date/str): Function returns files newer than this specified date
+        start_modified (date/str): Function returns files older than this specified date
+        pattern (str): Returns files that match this pattern
+        exclude_folder_pattern (str): Folders within the higher folders with this matching pattern are ignored
+
+    Returns:
+        file_list: list of all filepaths within the folder
+
+    """
+    file_list = {}
+
+    try:
+        folder = client.folder(folder_id=folder_id).get()
+        if folder.content_modified_at < last_modified:
+            return file_list
+    except:
+        return file_list
+
+    items = client.folder(folder_id=folder_id).get_items()
+
+    for item in items:
+        file_info = item.get()
+        if file_info.type == "file":
+            if (
+                file_info.name.endswith(file_extension)
+                and file_info.name.find(pattern) != -1
+                and file_info.modified_at > last_modified
+            ):
+                print(f"Reading {file_info.name}")
+                file_list[file_info.id] = file_info.name
+                continue
+        else:
+            if re.match(exclude_folder_pattern, file_info.name) != None:
+                continue
+            else:
+                print(f"---- Entering folder {file_info.name}")
+                file_list.update(
+                    box_ls(
+                        client=client,
+                        folder_id=file_info.id,
+                        file_extension=file_extension,
+                        pattern=pattern,
+                        last_modified=last_modified,
+                        exclude_folder_pattern=exclude_folder_pattern,
                     )
                 )
 
@@ -104,7 +168,7 @@ def box_create_df_from_files(
     file_extension,
     file_pattern,
     file_parsing_functions,
-    start_modified_date=str(date.today()),
+    start_modified_date="",
 ):
     """Recursively read files in a folder using the provided parsing function and return a combined dataframe
 
@@ -115,22 +179,31 @@ def box_create_df_from_files(
         file_extension (str): Only searchs for files with this extension
         file_pattern (str): Only reads files that match this pattern
         file_parsing_functions (func): Function to be used to read the files
-        start_modified_date (str): Function reads files older than this specified date, defaults to current date
+        start_modified_date (str): Function reads files older than this specified date (if provided)
 
     Returns:
         file_list: list of all filepaths within the folder
 
     """
 
-    # Iteratively search through box folder to find files matching given extension and pattern
-    files = box_ls(
-        client=box_client,
-        folder_id=box_folder_id,
-        file_extension=file_extension,
-        pattern=file_pattern,
-        last_modified=last_modified_date,
-        start_modified=start_modified_date,
-    )
+    if start_modified_date == "":
+        # Iteratively search through box folder to find files matching given extension and pattern
+        files = box_ls(
+            client=box_client,
+            folder_id=box_folder_id,
+            file_extension=file_extension,
+            pattern=file_pattern,
+            last_modified=last_modified_date,
+        )
+    else:
+        files = box_ls_window(
+            client=box_client,
+            folder_id=box_folder_id,
+            file_extension=file_extension,
+            pattern=file_pattern,
+            last_modified=last_modified_date,
+            start_modified=start_modified_date,
+        )
 
     total_no_files = len(files)
     print(f"Files found .. {total_no_files}")
