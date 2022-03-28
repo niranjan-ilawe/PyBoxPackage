@@ -31,10 +31,8 @@ def box_ls_window(
 
     try:
         folder = client.folder(folder_id=folder_id).get()
-        if (
-            folder.content_modified_at < last_modified
-            and folder.content_modified_at > start_modified
-        ):
+        folder_modified_at = folder.content_modified_at
+        if folder_modified_at < last_modified and folder_modified_at > start_modified:
             return file_list
     except:
         return file_list
@@ -44,11 +42,12 @@ def box_ls_window(
     for item in items:
         file_info = item.get()
         if file_info.type == "file":
+            file_modified_at = file_info.modified_at
             if (
                 file_info.name.endswith(file_extension)
                 and file_info.name.find(pattern) != -1
-                and file_info.modified_at > last_modified
-                and file_info.modified_at < start_modified
+                and file_modified_at > last_modified
+                and file_modified_at < start_modified
             ):
                 print(f"Reading {file_info.name}")
                 file_list[file_info.id] = file_info.name
