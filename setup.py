@@ -9,7 +9,7 @@ setup(
     author_email="niranjan.ilawe@10xgenomics.com",
     license="MIT",
     packages=["pybox"],
-    install_requires=["boxsdk", "keyring"],
+    install_requires=["boxsdk", "keyring", "openpyxl"],
     dependency_links=["http://github.com"],
     zip_safe=False,
 )
