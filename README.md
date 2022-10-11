@@ -13,8 +13,8 @@ Currently the *pybox* package contains the following functions
 2. save_access_refresh_tokens
 3. get_box_client
 4. box_ls
-5. box_parse_excel
-
+5. box_read_excel_file
+6. box_create_df_from_files
 
 The usage of these functions are explained below
 
@@ -92,4 +92,19 @@ df = box_read_excel_file(client=client, file_id='100023214', parsing_func=read_c
 ```
 
 For reading files from Box, you need to download them and then read them, `box_read_excel_file` provides a wrapper around the actual parsing function which handles the download and cleaning of the Box file.
+
+4. *box_create_df_from_files*
+
+```
+ca_sc3_1 = box_create_df_from_files(
+        box_client=client,
+        last_modified_date=last_modified_date,
+        box_folder_id="112734413150",
+        file_extension="xlsx",
+        file_pattern="Rev N",
+        file_parsing_functions=read_qc123_data_revN,
+    )
+```
+The function is a combination of the above two functions. It does a bunch of things. First it recursively searches through the specified Box folder for files that match the pattern and extension specified and have been modified after the specified date. Then it downloads the files one by one to the local working folder and applies the specified parsing function to the files. After the file has been read by the parsing function, it deletes the file from the local folder. Finally the function combines all the dataframes returned by the running the parsing function on all the individual files, and returns a single dataframe.
+One important note here: The function expects that your parsing function, has as its input, a file path and the output is a dataframe. So design your parsing function accordingly.
 
